@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catatan Warung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    /* Custom transitions */
+    .sidebar-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Optimized animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    /* Sidebar animation */
+    @keyframes slideIn {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); }
+      to { transform: translateX(-100%); }
+    }
+    
+    .sidebar-slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    .sidebar-slide-out {
+      animation: slideOut 0.3s ease-in forwards;
+    }
+    
+    /* Overlay animation */
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeOutOverlay {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    .overlay-fade-in {
+      animation: fadeInOverlay 0.3s ease-out forwards;
+    }
+    
+    .overlay-fade-out {
+      animation: fadeOutOverlay 0.3s ease-in forwards;
+    }
+    
+    /* Content shift animation */
+    .content-transition {
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Performance optimizations */
+    .will-change {
+      will-change: transform, opacity;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        z-index: 50;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+      }
+      
+      .sidebar-open {
+        left: 0;
+      }
+      
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 40;
+      }
+      
+      .overlay-open {
+        display: block;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      .content-area {
+        margin-left: 15rem; /* Match sidebar width */
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen flex overflow-x-hidden">
+
+  <!-- Mobile menu button -->
+  <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 will-change">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Overlay for mobile -->
+  <div id="overlay" class="overlay will-change"></div>
+
+  <!-- Sidebar Navigasi -->
+  <aside id="sidebar" class="sidebar w-60 bg-white p-6 shadow-md sidebar-transition will-change">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Navigasi</h2>
+      <button id="close-sidebar" class="md:hidden text-gray-500 hover:text-gray-700 transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="flex flex-col gap-3">
+      <a href="/riwayat" class="flex items-center gap-2 px-3 py-2 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors duration-200">
+        <span>📅</span>
+        <span>Lihat Riwayat</span>
+      </a>
+      <a href="/statistik" class="flex items-center gap-2 px-3 py-2 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors duration-200">
+        <span>📊</span>
+        <span>Statistik Bulanan</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main id="content-area" class="content-area flex-1 p-6 fade-in content-transition">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6 animate__animated animate__fadeIn">Catatan Warung Hari Ini</h1>
+
+      <!-- Form Penjualan -->
+      <form id="form-transaksi" class="bg-white shadow-md rounded-lg p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change">
+        <h2 class="text-xl font-bold mb-4">Tambah Penjualan</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
+            <select id="barang-select" name="barang" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+              <option value="">-- Pilih Barang --</option>
+              <option value="Es Teh" data-harga="3000">Es Teh</option>
+              <option value="Mie Goreng" data-harga="5000">Mie Goreng</option>
+              <option value="Kopi Hitam" data-harga="4000">Kopi Hitam</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+            <input type="number" name="jumlah" id="jumlah-input" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required min="1" value="1">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
+            <input type="number" id="harga-input" name="harga" class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 focus:outline-none" readonly>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Total</label>
+            <input type="text" id="total-harga" class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 focus:outline-none" readonly>
+          </div>
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 will-change">
+          Tambah
+        </button>
+      </form>
+
+      <!-- Form Pengeluaran -->
+      <form id="form-pengeluaran" class="bg-white shadow-md rounded-lg p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change">
+        <h2 class="text-xl font-bold mb-4 text-red-600">Tambah Pengeluaran</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
+            <input type="text" name="keterangan" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
+            <input type="number" name="jumlah" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
+          </div>
+        </div>
+        <button class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 will-change">
+          Tambah Pengeluaran
+        </button>
+      </form>
+
+      <!-- Statistik Ringkas -->
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change">
+        <h2 class="text-xl font-bold mb-4">Statistik Hari Ini</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-3 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Transaksi</p>
+            <p class="text-lg font-semibold">{{ total_transaksi }}</p>
+          </div>
+          <div class="p-3 bg-green-50 rounded-md hover:bg-green-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Pemasukan</p>
+            <p class="text-lg font-semibold">Rp {{ total_penjualan }}</p>
+          </div>
+          <div class="p-3 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Pengeluaran</p>
+            <p class="text-lg font-semibold">Rp {{ total_pengeluaran }}</p>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Untung Bersih</p>
+            <p class="text-lg font-semibold text-purple-700">Rp {{ keuntungan_bersih }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Transaksi -->
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Transaksi Hari Ini</h2>
+          <button id="refresh-transaksi" class="text-blue-600 hover:text-blue-800 transition-colors duration-200 transform hover:rotate-180 transition-transform duration-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Jam</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Barang</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Jumlah</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Harga</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Total</th>
+              </tr>
+            </thead>
+            <tbody id="transaksi-body">
+              {% if penjualan %}
+                {% for item in penjualan %}
+                  <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-2 border-b">{{ item.waktu }}</td>
+                    <td class="px-4 py-2 border-b">{{ item.barang }}</td>
+                    <td class="px-4 py-2 border-b">{{ item.jumlah }}</td>
+                    <td class="px-4 py-2 border-b">Rp {{ item.harga }}</td>
+                    <td class="px-4 py-2 border-b">Rp {{ item.total }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="px-4 py-4 text-center text-gray-500 italic">Belum ada penjualan hari ini.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabel Pengeluaran -->
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Pengeluaran Hari Ini</h2>
+          <button id="refresh-pengeluaran" class="text-blue-600 hover:text-blue-800 transition-colors duration-200 transform hover:rotate-180 transition-transform duration-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Jam</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Keterangan</th>
+                <th class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Jumlah</th>
+              </tr>
+            </thead>
+            <tbody id="pengeluaran-body">
+              {% if pengeluaran %}
+                {% for item in pengeluaran %}
+                  <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-2 border-b">{{ item.waktu }}</td>
+                    <td class="px-4 py-2 border-b">{{ item.keterangan }}</td>
+                    <td class="px-4 py-2 border-b">Rp {{ item.jumlah }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="3" class="px-4 py-4 text-center text-gray-500 italic">Belum ada pengeluaran hari ini.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Loading indicator -->
+  <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden will-change">
+    <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+      <p>Memproses...</p>
+    </div>
+  </div>
+
+  <!-- Script Harga Otomatis -->
+  <script>
+    // Debounce function for performance
+    function debounce(func, wait) {
+      let timeout;
+      return function() {
+        const context = this, args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+      };
+    }
+
+    const barangSelect = document.getElementById('barang-select');
+    const hargaInput = document.getElementById('harga-input');
+    const jumlahInput = document.getElementById('jumlah-input');
+    const totalInput = document.getElementById('total-harga');
+
+    function updateHargaTotal() {
+      const selected = barangSelect.options[barangSelect.selectedIndex];
+      const harga = parseInt(selected.getAttribute('data-harga')) || 0;
+      const jumlah = parseInt(jumlahInput.value) || 0;
+
+      hargaInput.value = harga;
+      const total = harga * jumlah;
+      totalInput.value = 'Rp ' + total.toLocaleString('id-ID');
+    }
+
+    barangSelect.addEventListener('change', updateHargaTotal);
+    jumlahInput.addEventListener('input', debounce(updateHargaTotal, 100));
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', updateHargaTotal);
+  </script>
+
+  <!-- Enhanced Sidebar Toggle with Animations -->
+  <script>
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const closeSidebarButton = document.getElementById('close-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const contentArea = document.getElementById('content-area');
+    
+    let isSidebarOpen = false;
+    
+    function openSidebar() {
+      isSidebarOpen = true;
+      sidebar.classList.add('sidebar-open');
+      sidebar.classList.add('sidebar-slide-in');
+      overlay.classList.add('overlay-open');
+      overlay.classList.add('overlay-fade-in');
+      document.body.classList.add('overflow-hidden');
+      
+      // Remove animation classes after animation completes
+      setTimeout(() => {
+        sidebar.classList.remove('sidebar-slide-in');
+        overlay.classList.remove('overlay-fade-in');
+      }, 300);
+    }
+    
+    function closeSidebar() {
+      isSidebarOpen = false;
+      sidebar.classList.add('sidebar-slide-out');
+      overlay.classList.add('overlay-fade-out');
+      
+      setTimeout(() => {
+        sidebar.classList.remove('sidebar-open', 'sidebar-slide-out');
+        overlay.classList.remove('overlay-open', 'overlay-fade-out');
+        document.body.classList.remove('overflow-hidden');
+      }, 300);
+    }
+    
+    function toggleSidebar() {
+      if (isSidebarOpen) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    }
+    
+    mobileMenuButton.addEventListener('click', toggleSidebar);
+    closeSidebarButton.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    
+    // Close sidebar when clicking on nav links (for mobile)
+    document.querySelectorAll('aside nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 768) {
+          closeSidebar();
+        }
+      });
+    });
+    
+    // Handle window resize
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        // Desktop view - ensure sidebar is visible
+        sidebar.classList.remove('sidebar-open', 'sidebar-slide-in', 'sidebar-slide-out');
+        overlay.classList.remove('overlay-open', 'overlay-fade-in', 'overlay-fade-out');
+        document.body.classList.remove('overflow-hidden');
+        isSidebarOpen = false;
+      }
+    }
+    
+    window.addEventListener('resize', debounce(handleResize, 100));
+    handleResize(); // Initialize
+  </script>
+
+  <!-- Script AJAX dengan Optimasi -->
+  <script>
+    const loadingIndicator = document.getElementById('loading');
+    
+    function showLoading() {
+      loadingIndicator.classList.remove('hidden');
+    }
+    
+    function hideLoading() {
+      loadingIndicator.classList.add('hidden');
+    }
+    
+    function showSuccessToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg animate__animated animate__fadeInUp will-change';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('animate__fadeOutDown');
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+    
+    function showErrorToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg animate__animated animate__fadeInUp will-change';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('animate__fadeOutDown');
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+    
+    // Enhanced form submission with loading and feedback
+    document.getElementById('form-transaksi').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showLoading();
+      
+      const formData = new FormData(this);
+      fetch('/tambah', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          showSuccessToast('Penjualan berhasil ditambahkan!');
+          this.reset();
+          updateHargaTotal();
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          throw new Error(data.message || 'Terjadi kesalahan');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showErrorToast(error.message || 'Gagal menambahkan penjualan');
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+
+    document.getElementById('form-pengeluaran').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showLoading();
+      
+      const formData = new FormData(this);
+      fetch('/pengeluaran', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          showSuccessToast('Pengeluaran berhasil ditambahkan!');
+          this.reset();
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          throw new Error(data.message || 'Terjadi kesalahan');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showErrorToast(error.message || 'Gagal menambahkan pengeluaran');
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+    
+    // Refresh buttons functionality
+    document.getElementById('refresh-transaksi').addEventListener('click', () => {
+      location.reload();
+    });
+    
+    document.getElementById('refresh-pengeluaran').addEventListener('click', () => {
+      location.reload();
+    });
+  </script>
+</body>
+</html>

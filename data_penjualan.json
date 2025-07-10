@@ -1,0 +1,69 @@
+{
+  "2025-07-10": {
+    "penjualan": [
+      {
+        "waktu": "20:29",
+        "barang": "es teh",
+        "jumlah": 1,
+        "harga": 3000,
+        "total": 3000
+      },
+      {
+        "waktu": "20:36",
+        "barang": "es teh",
+        "jumlah": 1,
+        "harga": 3000,
+        "total": 3000
+      },
+      {
+        "waktu": "20:39",
+        "barang": "es teh",
+        "jumlah": 1,
+        "harga": 3000,
+        "total": 3000
+      },
+      {
+        "waktu": "20:50",
+        "barang": "Es Teh",
+        "jumlah": 2,
+        "harga": 3000,
+        "total": 6000
+      },
+      {
+        "waktu": "20:50",
+        "barang": "Es Teh",
+        "jumlah": 1,
+        "harga": 3000,
+        "total": 3000
+      },
+      {
+        "waktu": "20:52",
+        "barang": "Es Teh",
+        "jumlah": 2,
+        "harga": 3000,
+        "total": 6000
+      },
+      {
+        "waktu": "21:04",
+        "barang": "Es Teh",
+        "jumlah": 3,
+        "harga": 3000,
+        "total": 9000
+      },
+      {
+        "waktu": "21:11",
+        "barang": "Es Teh",
+        "jumlah": 1,
+        "harga": 3000,
+        "total": 3000
+      }
+    ],
+    "pengeluaran": [
+      {
+        "waktu": "20:36",
+        "keterangan": "jajan",
+        "jumlah": 2000
+      }
+    ]
+  }
+}

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistik Bulanan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    /* Custom transitions */
+    .sidebar-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Sidebar animation */
+    @keyframes slideIn {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); }
+      to { transform: translateX(-100%); }
+    }
+    
+    .sidebar-slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    .sidebar-slide-out {
+      animation: slideOut 0.3s ease-in forwards;
+    }
+    
+    /* Overlay animation */
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeOutOverlay {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    .overlay-fade-in {
+      animation: fadeInOverlay 0.3s ease-out forwards;
+    }
+    
+    .overlay-fade-out {
+      animation: fadeOutOverlay 0.3s ease-in forwards;
+    }
+    
+    /* Content shift animation */
+    .content-transition {
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Performance optimizations */
+    .will-change {
+      will-change: transform, opacity;
+    }
+    
+    /* Entry animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in-up {
+      animation: fadeInUp 0.4s ease-out forwards;
+    }
+    
+    /* Chart animation */
+    @keyframes chartFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .chart-animate {
+      animation: chartFadeIn 0.8s ease-out forwards;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        z-index: 50;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+      }
+      
+      .sidebar-open {
+        left: 0;
+      }
+      
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 40;
+      }
+      
+      .overlay-open {
+        display: block;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      .content-area {
+        margin-left: 15rem; /* Match sidebar width */
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen flex overflow-x-hidden">
+
+  <!-- Mobile menu button -->
+  <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 will-change">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Overlay for mobile -->
+  <div id="overlay" class="overlay will-change"></div>
+
+  <!-- Sidebar Navigasi -->
+  <aside id="sidebar" class="sidebar w-60 bg-white p-6 shadow-md sidebar-transition will-change">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Navigasi</h2>
+      <button id="close-sidebar" class="md:hidden text-gray-500 hover:text-gray-700 transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="flex flex-col gap-3">
+      <a href="/" class="flex items-center gap-2 px-3 py-2 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors duration-200">
+        <span>🏠</span>
+        <span>Halaman Utama</span>
+      </a>
+      <a href="/riwayat" class="flex items-center gap-2 px-3 py-2 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors duration-200">
+        <span>📅</span>
+        <span>Riwayat</span>
+      </a>
+      <a href="/statistik" class="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 text-blue-800 font-medium">
+        <span>📊</span>
+        <span>Statistik</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main id="content-area" class="content-area flex-1 p-6 content-transition">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6 fade-in-up flex items-center gap-2">
+        <span>📊</span>
+        <span>Statistik Penjualan</span>
+      </h1>
+
+      <!-- Filter Form -->
+      <form method="get" class="mb-6 bg-white rounded-lg shadow-md p-6 transform hover:shadow-lg transition-all duration-300 will-change fade-in-up">
+        <h2 class="text-xl font-bold mb-4">Filter Data</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="flex items-center gap-2">
+            <input type="radio" id="filter-bulan" name="filter" value="bulan" class="text-blue-600" {% if filter == 'bulan' %}checked{% endif %}>
+            <label for="filter-bulan">Bulan Ini ({{ bulan }})</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="radio" id="filter-tahun" name="filter" value="tahun" class="text-blue-600" {% if filter == 'tahun' %}checked{% endif %}>
+            <label for="filter-tahun">Tahun Ini ({{ tahun }})</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="radio" id="filter-semua" name="filter" value="semua" class="text-blue-600" {% if filter == 'semua' %}checked{% endif %}>
+            <label for="filter-semua">Semua Data</label>
+          </div>
+        </div>
+        <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+          Terapkan Filter
+        </button>
+      </form>
+
+      <!-- Statistik Ringkas -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change fade-in-up" style="animation-delay: 0.1s">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span>📈</span>
+          <span>Ringkasan Statistik</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Transaksi</p>
+            <p class="text-xl font-bold">{{ total_transaksi }}</p>
+          </div>
+          <div class="bg-green-50 p-4 rounded-lg hover:bg-green-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Pemasukan</p>
+            <p class="text-xl font-bold">Rp {{ total_penjualan }}</p>
+          </div>
+          <div class="bg-red-50 p-4 rounded-lg hover:bg-red-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Total Pengeluaran</p>
+            <p class="text-xl font-bold">Rp {{ total_pengeluaran }}</p>
+          </div>
+          <div class="bg-purple-50 p-4 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+            <p class="text-sm text-gray-600">Untung Bersih</p>
+            <p class="text-xl font-bold {{ 'text-green-600' if keuntungan_bersih >= 0 else 'text-red-600' }}">
+              Rp {{ keuntungan_bersih }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafik Penjualan -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6 transform hover:shadow-lg transition-all duration-300 will-change fade-in-up" style="animation-delay: 0.2s">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span>📊</span>
+          <span>Grafik Penjualan per Hari</span>
+        </h2>
+        <div class="chart-animate">
+          <canvas id="grafikPenjualan" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Loading indicator -->
+      <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden will-change">
+        <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+          <p>Memproses...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chart.js Script -->
+  <script>
+    // Sidebar Toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const closeSidebarButton = document.getElementById('close-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const contentArea = document.getElementById('content-area');
+    
+    let isSidebarOpen = false;
+    
+    function openSidebar() {
+      isSidebarOpen = true;
+      sidebar.classList.add('sidebar-open');
+      sidebar.classList.add('sidebar-slide-in');
+      overlay.classList.add('overlay-open');
+      overlay.classList.add('overlay-fade-in');
+      document.body.classList.add('overflow-hidden');
+      
+      setTimeout(() => {
+        sidebar.classList.remove('sidebar-slide-in');
+        overlay.classList.remove('overlay-fade-in');
+      }, 300);
+    }
+    
+    function closeSidebar() {
+      isSidebarOpen = false;
+      sidebar.classList.add('sidebar-slide-out');
+      overlay.classList.add('overlay-fade-out');
+      
+      setTimeout(() => {
+        sidebar.classList.remove('sidebar-open', 'sidebar-slide-out');
+        overlay.classList.remove('overlay-open', 'overlay-fade-out');
+        document.body.classList.remove('overflow-hidden');
+      }, 300);
+    }
+    
+    function toggleSidebar() {
+      if (isSidebarOpen) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    }
+    
+    mobileMenuButton.addEventListener('click', toggleSidebar);
+    closeSidebarButton.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    
+    // Handle window resize
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        sidebar.classList.remove('sidebar-open', 'sidebar-slide-in', 'sidebar-slide-out');
+        overlay.classList.remove('overlay-open', 'overlay-fade-in', 'overlay-fade-out');
+        document.body.classList.remove('overflow-hidden');
+        isSidebarOpen = false;
+      }
+    }
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // Initialize Chart
+    document.addEventListener('DOMContentLoaded', () => {
+      const labels = JSON.parse('{{ labels | tojson | safe }}');
+      const values = JSON.parse('{{ values | tojson | safe }}');
+
+      const ctx = document.getElementById('grafikPenjualan').getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Penjualan (Rp)',
+            data: values,
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgb(59, 130, 246)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return 'Rp ' + context.raw.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => 'Rp ' + value.toLocaleString('id-ID'),
+                padding: 10
+              },
+              grid: {
+                drawBorder: false,
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          animation: {
+            duration: 1000
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
